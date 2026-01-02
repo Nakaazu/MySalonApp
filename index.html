@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <title>Salon Card App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Caveat:wght@700&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Noto Sans JP',sans-serif;
+        background-color: #f3f4f6;
+        /* Prevent pull-to-refresh on mobile */
+        overscroll-behavior-y: none;
+      }
+      /* App Container mimicking a phone screen on desktop */
+      .app-container {
+        max-width: 480px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        min-height: 100vh;
+        position: relative;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        padding-bottom: 80px; /* Space for bottom nav */
+      }
+
+      /* Handwritten font for dates */
+      .handwritten {
+        font-family: 'Caveat', cursive;
+      }
+
+      /* Stamp Animation */
+      @keyframes stamp-bounce {
+        0% {transform:scale(3) rotate(-15deg); opacity: 0;}
+        50% {transform:scale(0.9) rotate(-15deg); opacity: 1;}
+        70% {transform:scale(1.1) rotate(-15deg);}
+        100% {transform:scale(1) rotate(-5deg);}
+      }
+      .stamp-animate {
+        animation: stamp-bounce 0.4s cubic-bezier(0.175,0.885,0.32,1.275)forwards;
+      }
+
+      /* QR Scan Line Animation */
+      @keyframes scan-line {
+        0% {top: 10%;}
+        50% {top: 90%;}
+        100% {top: 10%;}
+      }
+      .scan-line {
+        position: absolute;
+        width: 100%;
+        height: 2px;
+        background: #ef4444;
+        box-shadow: 0 0 4px #ef4444;
+        animation: scan-line 2s linear infinite;
+      }
+
+      /* Toggle Switch for Coupon */
+      .toggle-checkbox:checked {
+        right: 0;
+        border-color: #68D391;
+      }
+      .toggle-checkbox:checked + .toggle-label {
+        background-color: #68D391;
+      }
+    </style>
+  </head>
+
+  <body>
+    
+    <div class="app-container" id="app">
+      <!-- Header -->
+
+              <!-- テスト用 -->
+       <button onclick="localStorage.removeItem('salonApp_v1'); location.reload();" 
+          class="absolute top-2 left-2 bg-gray-200 text-gray-500 text-[10px] px-2 py-1 rounded z-50">
+          リセット
+        </button>
+
+       <header class="bg-white px-6 pt-12 pb-3 sticky top-0 z-10 border-b border-gray-100">
+        <div class="flex justify-between items-end">
+          <div>
+            <p class="text-xs text-gray-500 mb-1">現在のランク</p>
+            <div class="flex items-center gap-2"></div>
+            <i class="fa-solid fa-crown text-yellow-500"></i>
+            <h1 class="text-xl font-bold text-gray-800">ゴールド会員</h1>
+          </div>
+        </div>
+
+        <div class="text-right">
+          <p class="text-xs text-gray-500 mb-1">ID: 8823-4567</p>
+          <p class="font-medium text-gray-800">山田 花子様</p>
+        </div>
+       </header>
+
+       <!-- Main Content Area -->
+        <main class="p-6">
+
+          <!-- View: HOME(Card) -->
+           <div id="view-home" class="view-section">
+            <!-- Card Visual -->
+             <div class="bg-indigo-600 rounded-2xl p-6 text-white shadow-xl mb-8 relative overflow-hidden">
+              <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full translate-y-1/2 translate-x-1/2"></div>
+
+              <div class="flex justify-between items-center mb-6">
+                <div>
+                  <h2 class="font-bold text-lg">MEMBER'S CARD</h2>
+                  <p class="text-indigo-100 text-white/80 text-xs">ヘアサロン Lumine</p>
+                </div>
+
+                <div class="text-right">
+                  <span class="text-3xl font-bold" id="current-points-display">0</span>
+                  <span class="text-sm">/ 10pts</span>
+                </div>
+              </div>
+
+              <!-- Stamp Grid -->
+               <div class="grid grid-cols-5 gap-3 mb-2" id="stamp-grid">
+
+                <!-- Stamp will be injected here by JS -->
+               </div>
+            </div>
+
+            <!-- Message -->
+             <div id="status-message-box" class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6 flex items-start gap-3">
+              <div class="bg-orange-100 p-3 rounded-full text-orange-500 flex-shrink-0">
+                <i class="fa-solid fa-gift"></i>
+              </div>
+
+              <div>
+                <h3 class="font-bold text-gray-800 text-sm mb-1">
+                  あと 
+                  <span id="points-needed" class="text-orange-500 text-lg">
+                    3
+                  </span>
+                  回で特典ゲット！
+                </h3>
+                <p class="text-xs text-gray-500">
+                  スタンプが10個貯まると「500円OFFクーポン」または「トリートメント無料」をプレゼント。
+                </p>
+              </div>
+             </div>
+
+             <!-- News / Info -->
+              <h3 class="font-bold text-gray-800 text-sm mb-3 ml-1">お知らせ</h3>
+
+              <div class="space-y-3">
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-indigo-500">
+                  <p class="text-xs text-gray-400 mb-1">2024.12.20</p>
+                  <p class="text-sm text-gray-700">年末年始の営業について</p>
+                </div>
+                
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-gray-200">
+                  <p class="text-sm text-gray-700">新トリートメント導入キャンペーン実施中！</p>
+                </div>
+              </div>
+           </div>
+
+           <!-- View:COUPON -->
+            <div id="view-coupon" class="view-section hidden">
+              <h2 class="text-xl font-bold text-gray-800 mb-6">保有クーポン</h2>
+              <div id="coupon-list" class="space-y-4">
+                <!-- Coupons will be injected here -->
+              </div>
+            </div>
+
+           <!-- View:HISTORY -->
+            <div id="view-history" class="view-section hidden">
+              <h2 class="text-xl font-bold text-gray-800 mb-6">来店履歴</h2>
+              
+              <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <ul id="history-list" class="divide-y divide-gray-100">
+                  <!-- History items will be injected here -->
+                </ul>
+              </div>
+
+              <div class="mt-8">
+                <h3 class="font-bold text-gray-800 mb-3">店舗情報</h3>
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 text-sm text-gray-600 space-y-3">
+                  <div class="flex items-start gap-3">
+                    <i class="fa-solid fa-location-dot mt-1 text-gray-400"></i>
+                    <p>東京都渋谷区神宮前１−２−３<br>原宿ビル3F</p>
+                  </div>
+
+                  <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-phone text-gray-400"></i>
+                    <p>03-0123-4567</p>
+                  </div>
+
+                  <div class="flex items-center gap-3">
+                    <i class="fa-brands fa-instagram text-gray-400"></i>
+                    <a href="#" class="text-indigo-600">@hair_salon_Lumine_demo</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </main>
+
+
+        <!-- QR Scan FAB (Floating Action Button) -->
+        <button onclick="startScan()" class="fixed bottom-24 right-6 w-16 h-16 bg-indigo-600 text-white rounded-full shadow-lg shadow-indigo-500/40 flex items-center justify-center transform transition active:scale-95 z-40 hover:bg-indifo-700">
+        <div class="flex flex-col items-center">
+          <i class="fa-solid fa-qrcode text-2xl mb-0.5"></i>
+          <span class="text-[9px] font-bold">QR読取</span>
+        </div>
+        </button>
+
+        <!-- Bottom Navigation -->
+        <nav class="fixed bottom-0 w-full max-w-[480px] bg-white border-t border-gray-200 pb-safe z-30" style="padding-bottom: env(safe-area-inset-bottom);">
+          <div class="flex justify-around items-center h-16">
+            
+            <button onclick="switchTab('home')" class="nav-btn active flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-indigo-500 transition" data-target="home">
+              <i class="fa-solid fa-id-card text-xl mb-1"></i>
+              <span class="text-[10px] font-bold">カード</span>
+            </button>
+
+            <button onclick="switchTab('coupon')" class="nav-btn flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-indigo-500" data-target="coupon">
+              <div class="relative">
+                <i class="fa-solid fa-ticket text-xl mb-1"></i>
+                <span id="coupon-badge" class="hidden absolute -top-1 -right-2 bg-red-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">N</span>
+              </div>
+              <span class="text-[10px] font-bold">クーポン</span>
+            </button>
+
+            <button onclick="switchTab('history')" class="nav-btn flex-1 flex flex-col items-center justify-center text-gray-400 hover:text-indigo-500 transition" data-target="history">
+              <i class="fa-solid fa-clock-rotate-left text-xl mb-1"></i>
+              <span class="text-[10px] font-bold">履歴</span>
+            </button>
+          </div>
+        </nav>
+
+        <!-- QR Scanner Modal Overlay -->
+        <div id="scanner-modal" class="fixed inset-0 bg-black z-50 hidden flex flex-col">
+          <div class="relative flex-1 bg-black">
+            <!-- Camera mockup -->
+              <div class="absolute inset-0 bg-gray-900 flex items-center justify-center">
+              <p class="text-gray-500">Camera Feed Active</p>
+              </div>
+
+            <!-- Scan Frame -->
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="w-64 h-64 border-2 border-white/50 rounded-lg relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-white"></div>
+                <div class="absolute top-0 right-0 w-4 h-4 border-t-4 border-r-4 border-white"></div>
+                <div class="absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 border-white"></div>
+                <div class="absolute bottom-0 right-0 w-4 h-4 border-b-4 border-r-4 border-white"></div>
+                <div class="scan-line"></div>
+              </div>
+            </div>
+            
+            <!-- Header -->
+            <div class="absolute top-0 w-full p-6 pt-12 text-center">
+              <p class="text-white font-bold text-lg drop-shadow-md">店舗のQRコードを読み取ってください</p>
+            </div>
+
+            <!-- Close Button -->
+            <button onclick="closeScan()" class="absolute top-12 right-6 w-10 h-10 bg-black/40 text-white rounded-full flex items-center justify-center backdrop-blur-sm">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+            </div>
+            <div class="bg-black/90 p-8 text-center text-white text-sm">
+              <p class="mb-2">明るい場所で読み取ってください</p>
+            </div>
+          </div>
+
+          <!-- Success Modal -->
+           <div id="success-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-6">
+            <div class="bg-white rounded-2xl p-8 w-full max-w-sm text-center transform scale-9- opacity-0 transition-all duration-300" id="success-content">
+              <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-500">
+                <i class="fa-solid fa-check text-4xl"></i>
+              </div>
+              <h3 class="text-xl font-bold text-gray-800 mb-2">スタンプ獲得！</h3>
+              <p class="text-gray-600 mb-6">本日もご来店ありがとうございました。<br>スタンプが付与されました。</p>
+              <button onclick="closeSuccess()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-md transition">カードを確認する</button>
+            </div>
+           </div>
+
+        </div>
+
+        <script>
+          // --- Initial Data & State ---
+          const MAX_POINTS = 10;
+
+          const defaultData = {
+            stamps: ["2024.10.15", "2025.06.02", "2025.11.20"],
+            history: [
+              {date: "2024.11.20", menu: "カット+カラー", price: "¥12,000"},
+              {date: "2025.06.02", menu: "トリートメント", price: "¥4,500"},
+              {date: "2025.10.15", menu: "カット", price: "¥6,000"}
+            ],
+            coupons: [
+              {id: 1, title: "初回限定 10%OFF", desc: "全メニュー対象", expire: "2024.12.31", used: true},
+            ]
+          };
+
+          let appData = JSON.parse(localStorage.getItem('salonApp_v1')) || defaultData;
+
+          // --- Core Functions ---
+          function saveData() {
+            localStorage.setItem('salonApp_v1', JSON.stringify(appData));
+          }
+
+          function renderStamps() {
+            const grid = document.getElementById('stamp-grid');
+            grid.innerHTML = '';
+
+            for (let i = 0; i < MAX_POINTS; i++) {
+              const isStamped = i < appData.stamps.length;
+              const dateStr = isStamped ? appData.stamps[i] : '';
+              const isNew = isStamped && i === appData.stamps.length - 1 && window.justAddedStamp;
+
+              const cell = document.createElement('div');
+              cell.className = 'aspect-square bg-indigo-800/50 rounded-full flex items-center justify-center relative border border-indigo-400/30';
+
+              if (isStamped) {
+                cell.className = 'aspect-square bg-white rounded-full flex items-center justify-center relative shadow-sm text-indigo-900';
+                cell.innerHTML = `
+                  <div class="${isNew ? 'stamp-animate' : ''} flex flex-col items-center justify-center w-full h-full">
+                    <div class="w-[90%] h-[90%] rounded-full border-2 border-indigo-600 flex items-center justify-center relative transform -rotate-12">
+                      <div class="text-[10px] font-bold text-center leading-tight handwritten text-indigo-800">
+                        ${dateStr}
+                      </div>
+                    </div>
+                  </div>
+                `;
+              } else {
+                cell.innerHTML = `<span class="text-xs text-indigo-300/50 font-bold">${i + 1}</span>`;
+              }
+              grid.appendChild(cell);
+            }
+
+            window.justAddedStamp = false;
+
+            const current = appData.stamps.length;
+            document.getElementById('current-points-display').textContent = current;
+
+            const needed = MAX_POINTS - current;
+            if (needed <= 0) {
+              const msgBox = document.getElementById('status-message-box');
+              msgBox.innerHTML = `
+                <div class="bg-green-100 p-3 rounded-full text-green-600 flex-shrink-0">
+                  <i class="fa-solid fa-check"></i>
+                </div>
+                <div>
+                  <h3 class="font-bold text-gray-800 text-sm mb-1">カード満了！クーポン発行済み</h3>
+                  <p class="text-xs text-gray-500">クーポンタブからご利用いただけます。</p>
+                </div>
+                `;
+            } else {
+              document.getElementById('points-needed').textContent = needed;
+            }
+          }
+
+          function renderHistory() {
+              const list = document.getElementById('history-list');
+              list.innerHTML = '';
+              
+              if (!appData.history || appData.history.length === 0) {
+                  list.innerHTML = '<li class="p-4 text-center text-gray-400 text-xs">履歴はありません</li>';
+                  return;
+              }
+
+              appData.history.forEach(item => {
+                  const li = document.createElement('li');
+                  li.className = 'p-4 flex justify-between items-center hover:bg-gray-50';
+                  li.innerHTML = `
+                    <div>
+                      <p class="text-xs text-gray-400 mb-0.5">${item.date}</p>
+                      <p class="text-sm font-medium text-gray-800">${item.menu}</p>
+                    </div>
+                    <p class="text-sm font-bold text-gray-600">${item.price}</p>
+                  `;
+                  list.appendChild(li);
+              });
+          }
+
+          function renderCoupons() {
+            const list = document.getElementById('coupon-list');
+            list.innerHTML = '';
+
+            if (appData.coupons.length === 0) {
+              list.innerHTML = '<p class="text-center text-gray-400 py-8">現在利用可能なクーポンはありません</p>';
+              return;
+            }
+
+            appData.coupons.forEach(coupon => {
+              const el = document.createElement('div');
+              el.className = `p-4 rounded-xl border-2 flex items-center justify-between relative overflow-hidden ${coupon.used ? 'bg-gray-100 border-gray-200 opacity-70' : 'bg-white border-indigo-100 shadow-sm'}`;
+
+              el.innerHTML = `
+                ${!coupon.used ? '<div class="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-gray-50 rounded-full border border-indigo-100"></div><div class="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-gray-50 rounded-full border border-indigo-100"></div>' : ''}
+
+                <div class="flex-1 pl-2">
+                  <p class="text-xs ${coupon.used ? 'text-gray-400' : 'text-indigo-500 font-bold'}">${coupon.used ? '使用済み' : '有効期限:' + coupon.expire}</p>
+                  <h3 class="font-bold text-lg ${coupon.used ? 'text-gray-500' : 'text-gray-800'}">${coupon.title}</h3>
+                  <p class="text-xs text-gray-400">${coupon.desc}</p>
+                </div>
+
+                ${!coupon.used 
+                  ? `<div class="flex flex-col items-center pl-4 border-l border-dashed border-gray-200">
+                      <button onclick="useCoupon(${coupon.id})" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-full shadow-md transition">
+                        使う
+                      </button>
+                    </div>`
+                  : `<div class="pl-4"><span class="text-xs font-bold text-gray-400 border border-gray-300 px-2 py-1 rounded">USED</span></div>`
+                }
+              `;
+              list.appendChild(el);
+            });
+
+            const activeCoupons = appData.coupons.filter(c => !c.used).length;
+            const badge = document.getElementById('coupon-badge');
+            if (activeCoupons > 0) {
+              badge.classList.remove('hidden');
+              badge.textContent = activeCoupons;
+            } else {
+              badge.classList.add('hidden');
+            }
+          }
+
+          // -- Actions --
+
+          function switchTab(tabName) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`view-${tabName}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+              if (btn.dataset.target === tabName) {
+                btn.classList.add('text-indigo-600');
+                btn.classList.remove('text-gray-400');
+              } else {
+                btn.classList.remove('text-indigo-600');
+                btn.classList.add('text-gray-400');
+              }
+            });
+
+            if (tabName === 'home') renderStamps();
+            if (tabName === 'coupon') renderCoupons();
+            if (tabName === 'history') renderHistory();
+          }
+
+          function startScan() {
+            if (appData.stamps.length >= MAX_POINTS) {
+              alert('カードがいっぱいです！特典を利用してください。');
+              return;
+            }
+
+            const modal = document.getElementById('scanner-modal');
+            modal.classList.remove('hidden');
+
+            setTimeout(() => {
+              closeScan();
+              completeStamp();
+            }, 2000);
+          }
+
+          function closeScan() {
+            document.getElementById('scanner-modal').classList.add('hidden');
+          }
+
+          function completeStamp() {
+            const today = new Date();
+            const dateStr = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
+
+            appData.stamps.push(dateStr);
+            window.justAddedStamp = true;
+
+            if(!appData.history) appData.history = [];
+            appData.history.unshift({
+              date: dateStr,
+              menu: "カット（アプリ経由）",
+              price: "¥6,000"
+            });
+
+            if (appData.stamps.length === MAX_POINTS) {
+              appData.coupons.unshift({
+                id: Date.now(),
+                title: "500円OFFクーポン",
+                desc: "スタンプ満了特典",
+                expire: "2025.12.31",
+                used: false
+              });
+            }
+
+            saveData();
+            // モーダル後に描画するため削除
+            //renderStamps();
+            //renderHistory();
+
+            const successModal = document.getElementById('success-modal');
+            const successContent = document.getElementById('success-content');
+            successModal.classList.remove('hidden');
+
+            setTimeout(() => {
+              successContent.classList.remove('scale-90', 'opacity-0');
+              successContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+          }
+
+          function closeSuccess() {
+            const successModal = document.getElementById('success-modal');
+            const successContent = document.getElementById('success-content');
+            
+            successContent.classList.remove('scale-100', 'opacity-100');
+            successContent.classList.add('scale-90', 'opacity-0');
+
+            setTimeout(() => {
+              successModal.classList.add('hidden');
+              switchTab('home');
+            }, 300);
+          }
+
+          function useCoupon(id) {
+            if (!confirm('クーポンを使用しますか？\nスタッフに画面を見せてください。')) return;
+            const coupon = appData.coupons.find(c => c.id === id);
+            if (coupon) {
+              coupon.used = true;
+              saveData();
+              renderCoupons();
+            }
+          }
+
+          // --- Init ---
+          switchTab('home');  //renderStamps();はswitchTabで行われる
+          renderCoupons(); 
+          renderHistory();
+
+        </script>
+  </body>
+  </html>
