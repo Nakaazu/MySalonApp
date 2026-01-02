@@ -72,6 +72,7 @@
     
     <div class="app-container h-[100dvh] flex flex-col relative" id="app">
       
+      
        <header class="bg-white px-6 pt-8 pb-3 shrink-0 z-10 border-b border-gray-100 relative">
         <button onclick="if(confirm('データをリセットしますか？')){localStorage.removeItem('salonApp_v1'); location.reload();}" 
            class="absolute top-2 left-2 bg-gray-100 hover:bg-gray-200 text-gray-500 text-[10px] px-2 py-1 rounded z-50 transition">
@@ -94,11 +95,14 @@
         </div>
        </header>
 
+       <!-- Main Content Area -->
        <main class="flex-1 overflow-y-auto p-6 bg-gray-50/50">
 
+        <!-- View+ Home(Card) -->
           <div id="view-home" class="view-section">
+            <!-- Card Visual -->
             <div class="bg-indigo-600 rounded-2xl p-6 text-white shadow-xl mb-8 relative overflow-hidden">
-              <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full translate-y-1/2 translate-x-1/2"></div>
+              <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
 
               <div class="flex justify-between items-center mb-6">
                 <div>
@@ -112,6 +116,7 @@
                 </div>
               </div>
 
+              <!-- Stamp Grid -->
               <div class="grid grid-cols-5 gap-3 mb-2" id="stamp-grid">
                 </div>
             </div>
