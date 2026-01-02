@@ -423,11 +423,6 @@
           }
 
           function startScan() {
-            if (appData.stamps.length >= MAX_POINTS) {
-              alert('カードがいっぱいです！特典を利用してください。');
-              return;
-            }
-
             const modal = document.getElementById('scanner-modal');
             modal.classList.remove('hidden');
 
@@ -455,6 +450,10 @@
               price: "¥6,000"
             });
 
+            // 成功モーダル用のメッセージ変数
+            let modalTitle = "スタンプ獲得！";
+            let modalDesc = "本日もご来店ありがとうございました。<br>スタンプが付与されました。";
+
             if (appData.stamps.length === MAX_POINTS) {
               appData.coupons.unshift({
                 id: Date.now(),
@@ -463,6 +462,11 @@
                 expire: "2025.12.31",
                 used: false
               });
+
+              appData.stamps = [];
+              
+              modalTitle = "カード満了！";
+              modalDesc = "おめでとうございます！<br>クーポンが発行され、<br>新しいカードに更新されました。";
             }
 
             saveData();
@@ -470,8 +474,13 @@
             //renderStamps();
             //renderHistory();
 
+            // Success Modal の内容を更新して表示
             const successModal = document.getElementById('success-modal');
             const successContent = document.getElementById('success-content');
+            
+            successContent.querySelector('h3').textContent = modalTitle;
+            successContent.querySelector('p').innerHTML = modalDesc;
+
             successModal.classList.remove('hidden');
 
             setTimeout(() => {
